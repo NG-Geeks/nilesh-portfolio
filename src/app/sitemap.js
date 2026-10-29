@@ -17,6 +17,12 @@ export default function sitemap() {
       changeFrequency: "weekly",
       priority: 1.0,
     },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
     ...caseStudyUrls,
   ];
 }

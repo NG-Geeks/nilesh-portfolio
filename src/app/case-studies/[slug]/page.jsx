@@ -17,10 +17,10 @@ export async function generateMetadata({ params }) {
   }
 
   return {
-    title: `${study.title} | Nilesh Architecture`,
+    title: `${study.title} | Case Study`,
     description: study.overview,
     openGraph: {
-      title: `${study.title} | Architectural Case Study`,
+      title: `${study.title} | Case Study`,
       description: study.headline,
       type: "article",
     },
@@ -46,3 +46,4 @@ export default function CaseStudyPage({ params }) {
     />
   );
 }
+

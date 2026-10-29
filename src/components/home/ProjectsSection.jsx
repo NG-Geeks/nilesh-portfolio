@@ -2,49 +2,50 @@
 
 import Link from "next/link";
 import { secondaryProjects } from "../../data/projects";
+import { siteLinks } from "../../data/links";
 
 export default function ProjectsSection() {
   return (
-    <section id="projects" className="py-20 lg:py-28 bg-navy-950/40 relative">
+    <section id="projects" className="py-16 md:py-24 border-t border-slate-800/60 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="max-w-3xl mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-tealAccent/10 border border-tealAccent/30 text-tealAccent text-xs font-mono">
-            <span>Engineering Implementations</span>
+        <div className="max-w-2xl mb-12 space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded text-xs font-mono bg-teal-400/10 text-teal-400 border border-teal-400/20">
+            <span>Independent Systems & Code</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Systems & Preserved Engineering Projects
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Systems Projects & Open Source Repositories
           </h2>
-          <p className="text-slate-400 text-base leading-relaxed">
-            Secondary projects showcasing distributed systems, full-stack state management, and real-time API integrations.
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Independent systems engineering projects, concurrency benchmarks, and application repositories.
           </p>
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {secondaryProjects.map((project) => (
             <div
               key={project.name}
-              className="p-7 rounded-2xl bg-navy-900/70 border border-slate-800 hover:border-slate-700 transition-all shadow-card flex flex-col justify-between"
+              className="p-6 rounded-xl bg-slate-900/40 border border-slate-800/60 hover:border-slate-700/80 transition-all flex flex-col justify-between shadow-sm"
             >
               <div>
-                <div className="text-xs font-mono text-tealAccent mb-2">
+                <div className="text-[11px] font-mono text-teal-400 mb-1.5 font-medium">
                   {project.type}
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-3">
+                <h3 className="text-base font-bold text-white mb-2">
                   {project.name}
                 </h3>
 
-                <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">
                   {project.description}
                 </p>
 
-                <div className="flex flex-wrap gap-1.5 mb-6">
+                <div className="flex flex-wrap gap-1.5 mb-4">
                   {project.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-0.5 rounded text-[11px] font-mono bg-navy-950 text-slate-300 border border-slate-800"
+                      className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-950 text-slate-300 border border-slate-800"
                     >
                       {tag}
                     </span>
@@ -52,13 +53,13 @@ export default function ProjectsSection() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800/80">
+              <div className="pt-3 border-t border-slate-800/50">
                 {project.isCaseStudy ? (
                   <Link
                     href={`/case-studies/${project.caseStudySlug}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-tealAccent hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-teal-400 hover:text-teal-300 transition-colors"
                   >
-                    <span>Read System Architecture</span>
+                    <span>Read System Benchmark & Architecture</span>
                     <span>→</span>
                   </Link>
                 ) : (
@@ -78,6 +79,35 @@ export default function ProjectsSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Profile Repositories & LeetCode Callout */}
+        <div className="mt-8 p-4 rounded-xl bg-slate-900/30 border border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="text-teal-400">▹</span>
+            <span>Looking for more code & algorithmic problem solving?</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href={siteLinks.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-white inline-flex items-center gap-1.5 transition-colors"
+            >
+              <span>GitHub (ng-geeks)</span>
+              <span>↗</span>
+            </a>
+            <span className="text-slate-600">•</span>
+            <a
+              href={siteLinks.leetcode}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-amber-400 inline-flex items-center gap-1.5 transition-colors"
+            >
+              <span>LeetCode (ng404)</span>
+              <span>↗</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>

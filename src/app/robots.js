@@ -7,3 +7,4 @@ export default function robots() {
     sitemap: "https://ng-geeks.github.io/portfolio_Nilesh/sitemap.xml",
   };
 }
+

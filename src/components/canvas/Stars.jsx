@@ -54,7 +54,7 @@ const StarsCanvas = () => {
   if (!mounted) return null;
 
   return (
-    <div className="w-full h-auto absolute inset-0 z-[-1] pointer-events-none opacity-70">
+    <div className="w-full h-full fixed inset-0 z-0 pointer-events-none opacity-60">
       <Canvas
         camera={{ position: [0, 0, 1] }}
         gl={{ powerPreference: "low-power" }}

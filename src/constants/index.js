@@ -56,14 +56,14 @@ export const navLinks = [
 ];
 export const navLink = [
   {
-    id: "https://leetcode.com/Nilesh-geeks/",
+    id: "https://leetcode.com/ng404",
     image: LeetCode,
-    title: "Github",
+    title: "Leetcode",
   },
   {
-    id: "https://github.com/Nilesh-geeks",
+    id: "https://github.com/ng-geeks",
     image: github,
-    title: "Leetcode",
+    title: "Github",
   },
   {
     id: "https://www.linkedin.com/in/nilesh-geeks",
@@ -231,7 +231,7 @@ const projects = [
       },
     ],
     image: News_App,
-    source_code_link: "https://github.com/Nilesh-geeks/News-App",
+    source_code_link: "https://github.com/ng-geeks/News-App",
   },
   {
     name: "Inotebook",
@@ -252,7 +252,7 @@ const projects = [
       },
     ],
     image: Inotebookk,
-    source_code_link: "https://github.com/Nilesh-geeks/Inotebook",
+    source_code_link: "https://github.com/ng-geeks/Inotebook",
   },
   // {
   //   name: "Full Stack Food Website",

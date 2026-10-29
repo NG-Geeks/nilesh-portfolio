@@ -14,7 +14,7 @@ export const secondaryProjects = [
     description:
       "Cloud-based notes management application with user authentication, secure JWT session management, and CRUD persistence backed by MongoDB.",
     tags: ["React", "Node.js", "Express", "MongoDB", "JWT Auth"],
-    sourceCodeLink: "https://github.com/Nilesh-geeks/Inotebook",
+    sourceCodeLink: "https://github.com/ng-geeks/Inotebook",
     isCaseStudy: false,
   },
   {
@@ -23,7 +23,8 @@ export const secondaryProjects = [
     description:
       "Real-time news application categorized across Technology, Business, Sports, and Science with responsive UI and infinite scrolling.",
     tags: ["React", "CSS3", "REST APIs", "Modern JS"],
-    sourceCodeLink: "https://github.com/Nilesh-geeks/News-App",
+    sourceCodeLink: "https://github.com/ng-geeks/News-App",
     isCaseStudy: false,
   },
 ];
+

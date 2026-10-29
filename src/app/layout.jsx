@@ -11,16 +11,16 @@ const StarsCanvas = dynamic(() => import("../components/canvas/Stars"), {
 export const metadata = {
   metadataBase: new URL("https://ng-geeks.github.io"),
   title: {
-    default: "Nilesh | Software & Platform Architect • Senior Backend Engineer",
-    template: "%s | Nilesh — Software & Solution Architecture",
+    default: "Nilesh Gupta | Backend Software Engineer",
+    template: "%s | Nilesh Gupta",
   },
   description:
-    "Engineering portfolio of Nilesh: Software & Solution Architect specializing in multi-tenant SaaS security, distributed rate limiting, Apache Solr commerce discovery, and subscription billing systems.",
+    "Engineering portfolio of Nilesh Gupta: Backend Software Engineer specializing in multi-tenant SaaS security, distributed systems, usage billing, and scalable backend infrastructure.",
   keywords: [
-    "Software Architect",
-    "Solution Architect",
-    "Platform Engineer",
-    "Senior Backend Engineer",
+    "Nilesh Gupta",
+    "Backend Software Engineer",
+    "Backend Engineering",
+    "Platform Engineering",
     "Distributed Systems",
     "Multi-Tenant SaaS",
     "IAM Security",
@@ -30,22 +30,22 @@ export const metadata = {
     "Next.js App Router",
     "Three.js",
   ],
-  authors: [{ name: "Nilesh", url: "https://github.com/Nilesh-geeks" }],
-  creator: "Nilesh",
+  authors: [{ name: "Nilesh Gupta", url: "https://github.com/ng-geeks" }],
+  creator: "Nilesh Gupta",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://ng-geeks.github.io/portfolio_Nilesh",
-    title: "Nilesh | Software & Platform Architect",
+    title: "Nilesh Gupta | Backend Software Engineer",
     description:
-      "I build secure platforms and design systems that scale. Explore architectural case studies in multi-tenant IAM, subscription billing, and distributed search.",
-    siteName: "Nilesh Architecture Portfolio",
+      "Building Secure, Scalable Backend Systems. Multi-Tenant SaaS · IAM & Security · Billing Systems · Distributed Systems.",
+    siteName: "Nilesh Gupta Portfolio",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nilesh | Software & Platform Architect",
+    title: "Nilesh Gupta | Backend Software Engineer",
     description:
-      "I build secure platforms and design systems that scale. Explore architectural case studies in multi-tenant IAM, subscription billing, and distributed search.",
+      "Building Secure, Scalable Backend Systems. Multi-Tenant SaaS · IAM & Security · Billing Systems · Distributed Systems.",
   },
   robots: {
     index: true,
@@ -62,7 +62,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark scroll-smooth">
-      <body className="bg-navy-950 text-slate-100 min-h-screen flex flex-col relative selection:bg-tealAccent selection:text-navy-950 antialiased">
+      <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col relative selection:bg-teal-500 selection:text-slate-950 antialiased font-sans">
         {/* Background interactive particle constellation (Three.js) */}
         <StarsCanvas />
 

@@ -1,123 +1,108 @@
 export const caseStudies = [
   {
     slug: "multi-tenant-iam",
-    title: "Multi-Tenant SaaS Security and Hierarchical IAM",
-    shortTitle: "Multi-Tenant IAM & Security",
+    title: "Multi-Tenant SaaS Security & Hierarchical Access Control",
+    shortTitle: "Multi-Tenant IAM",
     category: "Identity & Platform Security",
-    role: "Platform Engineer / IAM Architecture",
+    role: "Platform Engineer — IAM & Tenant Isolation",
     company: "Mocha Technologies",
-    headline: "Zero-leakage multi-tenant access control across 20+ microservices and 50k+ enterprise tenants.",
+    headline: "Enforcing zero-leakage tenant boundaries and granular authorization across 20+ microservices.",
     overview:
-      "Engineered application-layer tenant isolation, hierarchical role-based access control (RBAC), and session security for a six-product B2B SaaS suite. Solved the operational challenge of allowing enterprise customers to define custom granular permissions without introducing database schema fragmentation or tenant crosstalk.",
+      "Engineered application-layer tenant isolation, hierarchical role-based access control (RBAC), and session security for a six-product B2B SaaS suite. Solved the operational challenge of allowing enterprise clients to define custom granular permissions without creating schema fragmentation or cross-tenant data leaks.",
     reportedScope: {
-      tenants: "50,000+ Enterprise Tenants",
-      users: "1,000,000+ Active Users",
-      suite: "6-Product Integrated SaaS Suite",
-      services: "20+ Interconnected Microservices",
-      tests: "200+ Cross-Service Integration Tests",
+      tenants: "50,000+ Enterprise Tenants (Platform Scope)",
+      users: "1,000,000+ Active Users (Platform Scope)",
+      suite: "6 Integrated SaaS Products",
+      testing: "200+ Cross-Service Integration Tests",
     },
     context:
-      "As enterprise adoption expanded across financial services and healthcare clients, Mocha Technologies required SOC-2 and HIPAA-compliant data isolation. Individual tenant organizations required distinct organizational trees, department-level permission delegation, multi-factor authentication (MFA), and single-sign-on (SSO) through enterprise identity providers like Google Workspace and Microsoft Entra ID (Azure AD).",
+      "As Mocha Technologies expanded across enterprise accounts, clients required verified data isolation and customizable access control. Organizations required distinct permission hierarchies, departmental role delegation, multi-factor authentication (MFA), and single-sign-on (SSO) with Google Workspace and Microsoft Entra ID (Azure AD).",
     constraints: [
-      "Zero shared-cache or database crosstalk across tenant boundaries in a pooled database model.",
-      "Custom role definitions evaluate at runtime with sub-millisecond authorization overhead.",
-      "Immediate session revocation across all distributed microservices upon suspicious device fingerprinting.",
-      "Strict backward compatibility with legacy single-tenant API consumers.",
+      "Zero cross-tenant data leakage within a pooled, shared-database infrastructure.",
+      "Custom role permissions must evaluate with low latency on every authenticated request.",
+      "Immediate session invalidation capability across all pods upon detected device anomalies.",
+      "Full backward compatibility for legacy microservice endpoints during rollout.",
     ],
     personalContribution: [
-      "Architected application-layer RBAC with row-level tenant filters injected into database query contexts.",
-      "Implemented tenant-facing hierarchical role inheritance and custom permission matrix evaluators.",
-      "Developed secure token lifecycle handling: signed short-lived JWTs paired with Redis-backed revocation lists.",
-      "Integrated enterprise SSO (Google Workspace, Microsoft Entra ID) and TOTP/SMS multi-factor authentication.",
-      "Engineered automated device lifecycle tracking that triggers session invalidation on fingerprint anomalies.",
-      "Authored 200+ cross-service integration test suites validating tenant isolation boundaries against injection and IDOR attacks.",
+      "Architected application-layer RBAC with tenant scoping injected into database query contexts.",
+      "Implemented hierarchical role inheritance and custom permission matrix evaluators.",
+      "Engineered token lifecycle management: short-lived signed JWTs paired with Redis revocation tracking.",
+      "Integrated enterprise SSO (Google Workspace, Microsoft Entra ID) and MFA verification flows.",
+      "Authored 200+ cross-service integration tests validating tenant isolation boundaries in CI/CD pipelines.",
     ],
     architecture: {
       description:
-        "The architecture enforces authorization through a dual-tier Policy Enforcement Point (PEP) and Policy Decision Point (PDP) model. Incoming requests hit the API Gateway, which inspects JWT tokens, validates cryptographic signatures, and enriches downstream context with Tenant Context (Tenant ID, Role Set, Org Path). Database ORM interceptors dynamically append tenant scoping clauses to every query.",
-      flow: [
-        "Client Request (HTTPS / TLS 1.3 with Bearer JWT)",
-        "API Gateway PEP verifies signature & checks Redis Session Revocation Blacklist",
-        "Tenant Resolution Interceptor extracts Tenant UUID and Org Tree path",
-        "PDP evaluates requested action against cached Redis hierarchical permission bitmaps",
-        "Downstream Microservice receives authenticated Tenant Context header",
-        "Data Access Layer Interceptor enforces row-level constraint (WHERE tenant_id = :tenant_id)",
-        "Encrypted Audit Log captures user, tenant, action, and resource vector",
+        "Requests enter via the API Gateway where authentication and session validity are verified. The Tenant Context Interceptor injects the verified Tenant ID and role permissions into downstream service calls. Every database query automatically applies row-level tenant filtering.",
+      layers: [
+        {
+          name: "Client & Ingress Layer",
+          items: ["Web & Mobile Clients", "API Gateway (TLS 1.3 / Ingress)"],
+        },
+        {
+          name: "Security & Enforcement Layer",
+          items: ["Token Verification (JWT)", "Tenant Context Interceptor", "Redis Revocation Cache"],
+        },
+        {
+          name: "Microservices & Business Logic",
+          items: ["Hierarchical Role Evaluator (PDP)", "Product Microservices Mesh"],
+        },
+        {
+          name: "Persistence & Data Isolation",
+          items: ["Scoped Query Interceptor (WHERE tenant_id = ?)", "Pooled PostgreSQL Storage"],
+        },
       ],
-      diagram: `
-+-----------------------------------------------------------------------------------+
-|                            CLIENT / WEB / MOBILE BROWSER                          |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | HTTPS / Bearer Token
-                                          v
-+-----------------------------------------------------------------------------------+
-|                        API GATEWAY & POLICY ENFORCEMENT                           |
-|  - Token validation (Ed25519)         - Device fingerprint check                  |
-|  - Redis revocation query (<1ms)      - Tenant ID extraction                      |
-+-----------------------------------------------------------------------------------+
-           |                                                      |
-           | Authenticated Tenant Context                         | Token Revocation
-           v                                                      v
-+----------------------------------------+              +---------------------------+
-|          MICROSERVICES MESH            |              |     REDIS CLUSTER         |
-|  - Policy Decision Point (PDP)         |              |  - Active Session States  |
-|  - Hierarchical Role Bitmaps           |              |  - Revoked Token JTI Set  |
-|  - Tenant-scoped Service Interceptors  |              |  - Permission Bitmaps     |
-+----------------------------------------+              +---------------------------+
-                   |
-                   | Contextual Query (Tenant Scoped)
-                   v
-+-----------------------------------------------------------------------------------+
-|                     POOLED POSTGRESQL MULTI-TENANT STORAGE                         |
-|  - Enforced Row-Level Isolation: SELECT ... WHERE tenant_id = $context.tenant_id  |
-|  - Tenant-partitioned indexes for hot customer tables                             |
-+-----------------------------------------------------------------------------------+
-`,
+      flow: [
+        "Client transmits request with Bearer JWT token to API Gateway.",
+        "Gateway verifies token signature and checks Redis session revocation status.",
+        "Tenant Context Interceptor extracts Tenant ID and organizational tree path.",
+        "Authorization engine evaluates requested resource action against cached permission roles.",
+        "Downstream microservice executes data queries with enforced tenant-scoping clauses.",
+        "Encrypted audit log records user ID, tenant ID, and action vector for compliance.",
+      ],
     },
     decisions: [
       {
         decision: "Application-Layer Tenant Scoping vs Database-Per-Tenant",
         rationale:
-          "Managing 50,000+ separate PostgreSQL databases would cause severe connection pool exhaustion and operational nightmare during schema migrations. Instead, pooled databases with row-level tenant identifiers enforced at the ORM/interceptor layer provided elastic scalability at a fraction of infrastructure cost.",
+          "Managing tens of thousands of individual PostgreSQL databases would cause connection pool exhaustion and complex operational overhead during migrations. A shared database with row-level tenant filtering enforced at the query interceptor layer provided efficient resource utilization with strict automated test verification.",
       },
       {
-        decision: "Bitwise Permission Evaluation in Redis",
+        decision: "In-Memory Permission Caching in Redis",
         rationale:
-          "Rather than querying complex SQL permission joins on every API hit, permissions are compiled into bitmasks cached in Redis. Dynamic role evaluation executes in O(1) bitwise AND operations.",
+          "Evaluating complex multi-level organizational permission joins on every API hit is cost-prohibitive. Compiling evaluated roles into cached permission sets in Redis allows rapid authorization checks.",
       },
       {
-        decision: "Short-Lived JWTs (15 min) with Redis Blacklisting",
+        decision: "Short-Lived Access Tokens with Redis Revocation Tracking",
         rationale:
-          "Stateless JWTs provide high throughput for downstream microservices, but enterprise security requires instant kill switches. Pairing 15-minute access tokens with Redis revocation sets balances distributed verification with instant session termination.",
+          "Stateless JWTs allow high-throughput verification, while Redis revocation tracking provides the enterprise requirement for instant session termination during security events.",
       },
     ],
     tradeoffs: [
       {
-        aspect: "Pooled Database Multi-Tenancy",
-        chosen: "Shared database with ORM-enforced tenant filtering & partitioned indexes.",
+        aspect: "Pooled Database Architecture",
+        chosen: "Shared database tables with programmatic tenant filtering and scoped indexes.",
         alternative: "Separate database or schema per tenant.",
         impact:
-          "Drastically lowered RDS hosting costs and simplified deployments, but required rigorous automated regression testing (200+ tests) to guarantee zero leakage risk.",
+          "Lowered infrastructure overhead and simplified migrations, requiring rigorous automated testing (200+ integration tests) to ensure zero data leakage.",
       },
       {
-        aspect: "Permission Cache Invalidation",
-        chosen: "Event-driven Redis cache invalidation via pub/sub on role modification.",
-        alternative: "Strict TTL expiration without pub/sub.",
+        aspect: "Role Modification Propagation",
+        chosen: "Event-driven cache invalidation when administrative roles are altered.",
+        alternative: "Strict time-to-live (TTL) polling without event invalidation.",
         impact:
-          "Permission changes take effect in milliseconds across all pods, with a minimal pub/sub overhead.",
+          "Role updates take effect immediately across all pods, with a minimal pub/sub invalidation overhead.",
       },
     ],
     reliabilityAndSecurity:
-      "Zero-trust isolation is maintained by forbidding wildcards in SQL queries and rejecting any ORM query missing an explicit tenant context. Suspicious activity triggers an automated step-up challenge (MFA) and invalidates the session family across all active pods.",
+      "Tenant scoping is enforced at the query layer, rejecting any data access missing an explicit tenant context. Suspicious activity triggers session termination across active pod instances.",
     results: [
-      "Reported Platform Scope: Supported 50k+ enterprise tenants and 1M+ active users across 6 SaaS products.",
-      "Zero reported cross-tenant data leakage incidents during security audits.",
-      "Sub-2ms authorization validation latency across internal microservice calls.",
-      "200+ automated integration tests incorporated into the CI/CD deployment pipeline.",
+      "Reported Platform Scope: Supported 50k+ enterprise tenants across 6 SaaS products.",
+      "Zero cross-tenant data leakage incidents reported during security audits.",
+      "Consistent low-latency authorization checks via in-memory caching.",
+      "200+ automated integration tests integrated into continuous integration pipelines.",
     ],
     lessonsLearned:
-      "Multi-tenancy cannot be treated as an afterthought or a frontend routing parameter. Security boundaries must be baked into the foundational query pipeline, token verification middleware, and automated integration harnesses.",
+      "Multi-tenancy and data isolation must be enforced systematically at the query and middleware layers rather than relying on individual developer query discipline.",
     technologies: [
       "Node.js",
       "TypeScript",
@@ -133,123 +118,107 @@ export const caseStudies = [
   {
     slug: "usage-seat-billing",
     title: "Usage-Based & Seat Synchronization Billing Engine",
-    shortTitle: "Subscription & Usage Billing",
+    shortTitle: "Usage & Seat Billing",
     category: "Financial Infrastructure & Distributed Systems",
     role: "Backend & Systems Engineer",
     company: "Mocha Technologies (QuickBill)",
-    headline: "Idempotent subscription lifecycle, real-time usage metering, and automated seat synchronization.",
+    headline: "Idempotent event processing, consumption metering, and subscription proration reconciliation.",
     overview:
-      "Designed and implemented the core billing reconciliation engine for QuickBill. Handled hybrid subscription models combining fixed monthly/annual seat-based licensing with dynamic, high-volume pay-per-use consumption metering.",
+      "Engineered core components of the QuickBill subscription and usage-based billing platform. Supported hybrid licensing models combining base seat quantities with dynamic consumption metering, ensuring idempotent processing and automated failure recovery.",
     reportedScope: {
       platform: "QuickBill Subscription Platform",
-      features: "Hybrid Seat + Consumption Metering",
-      lifecycle: "Automated Dunning & Proration Engine",
-      resilience: "100% Idempotent Event Ingestion",
+      licensing: "Hybrid Seat-Based + Usage Metering",
+      resilience: "Idempotent Event Ingestion Pipeline",
+      recovery: "Automated Dunning & Retry Workflows",
     },
     context:
-      "Enterprise SaaS customers require flexible licensing: base team seats combined with per-gigabyte, per-API-call, or per-compute-hour billing. Inaccurate billing or out-of-order event delivery directly erodes customer trust and causes financial discrepancies.",
+      "Enterprise SaaS customers require flexible licensing: base seats for team members combined with metered consumption (API hits, storage, compute). Inaccurate proration or duplicated events under network retries directly cause financial discrepancies.",
     constraints: [
-      "Financial correctness: Zero double-billing under network retries, gateway drops, or worker crashes.",
-      "High-throughput event ingestion without locking customer balance rows.",
-      "Accurate second-by-second seat proration when team members are invited or removed mid-cycle.",
-      "Resilient reconciliation with third-party payment gateways (Stripe / Razorpay).",
+      "Financial consistency: Prevent duplicate billing under network retries, gateway drops, or worker restarts.",
+      "High-volume usage ingestion without creating row lock contention on customer account balances.",
+      "Accurate mid-cycle seat proration when team members are added or removed.",
+      "Reliable reconciliation with payment gateway webhooks (Stripe / Razorpay).",
     ],
     personalContribution: [
-      "Engineered the asynchronous usage metering pipeline processing consumption events with idempotency keys.",
-      "Formulated mathematical seat proration logic calculating exact credit balances on mid-cycle additions and downgrades.",
-      "Implemented a transactional outbox pattern to decouple event collection from billing ledger updates.",
-      "Constructed automated webhook retry and dunning workers with exponential backoff and jitter.",
-      "Created reconciliation jobs auditing third-party payment gateway state against the internal transaction ledger.",
+      "Engineered asynchronous usage metering pipeline processing consumption events with idempotency keys.",
+      "Formulated seat proration calculation logic determining exact credit deltas during mid-cycle tier changes.",
+      "Implemented asynchronous event publishing to decouple usage collection from billing updates.",
+      "Constructed webhook retry and dunning workers with exponential backoff and jitter.",
+      "Built reconciliation jobs verifying payment gateway subscription statuses against internal billing records.",
     ],
     architecture: {
       description:
-        "The billing pipeline decouples fast consumption ingestion from strict ledger calculation. Incoming usage events arrive via HTTP/gRPC, receive a deterministic SHA-256 idempotency key, and land in a durable queue. Worker pools aggregate usage into sliding billing windows and write immutable records to the accounting ledger.",
-      flow: [
-        "Product microservice emits usage event (tenant_id, metric, units, timestamp, event_id)",
-        "API Gateway validates schema & checks Redis idempotency window (deduplicating retries)",
-        "Durable message queue partitions events by tenant_id to preserve ordering",
-        "Stream aggregator batches units into hourly consumption buckets",
-        "Billing Worker performs mid-cycle seat proration computation",
-        "Transactional Ledger records debit/credit entries in PostgreSQL with atomic locks",
-        "Payment reconciliation worker synchronizes invoices with external gateways",
+        "The billing architecture decouples high-frequency usage event ingestion from billing calculations. Events arrive with unique idempotency keys, pass through deduplication buffers, and are aggregated by worker jobs before updating customer balances.",
+      layers: [
+        {
+          name: "Usage Ingestion Layer",
+          items: ["Product Services (Event Emitters)", "Idempotency Validation Gateway"],
+        },
+        {
+          name: "Asynchronous Buffering Layer",
+          items: ["Deduplication Store (Redis)", "Partitioned Event Queue"],
+        },
+        {
+          name: "Billing & Proration Engine",
+          items: ["Batch Usage Aggregator", "Seat Proration Calculation Worker"],
+        },
+        {
+          name: "Reconciliation & Gateways",
+          items: ["Customer Billing Database", "Payment Gateway (Stripe / Razorpay)"],
+        },
       ],
-      diagram: `
-+-----------------------------------------------------------------------------------+
-|                        PRODUCT MICROSERVICES (EMITTERS)                           |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | POST /api/v1/usage/events (Idempotent UUID)
-                                          v
-+-----------------------------------------------------------------------------------+
-|                        INGESTION GATEWAY & DEDUPLICATION                          |
-|  - Redis SETNX idempotency check      - Schema & signature validation             |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          v
-+-----------------------------------------------------------------------------------+
-|                    DURABLE EVENT BROKER (TENANT PARTITIONED)                      |
-|  - Partition Key: tenant_id           - Guaranteed in-order stream per tenant     |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          v
-+-----------------------------------------------------------------------------------+
-|                       BATCH AGGREGATOR & BILLING WORKERS                          |
-|  - Time-bucketed accumulation         - Seat delta proration calculator           |
-|  - Outbox pattern event publisher     - Circuit-breaker wrapped payment calls     |
-+-----------------------------------------------------------------------------------+
-           |                                                      |
-           | Immutable Ledger Write                               | Synchronize
-           v                                                      v
-+----------------------------------------+              +---------------------------+
-|      POSTGRESQL ACCOUNTING LEDGER      |              |   STRIPE / PAYMENT GW     |
-|  - Double-entry debit/credit balance   |              |  - Invoices & Subscriptions|
-|  - Optimistic locking on cycle close   |              |  - Webhook Delivery       |
-+----------------------------------------+              +---------------------------+
-`,
+      flow: [
+        "Product service emits usage event with deterministic idempotency identifier.",
+        "Ingestion gateway verifies event schema and checks deduplication store.",
+        "Event queue partitions consumption streams by tenant to preserve operational order.",
+        "Batch worker aggregates consumption units into billing period intervals.",
+        "Proration engine calculates credit deltas when seat license counts change mid-cycle.",
+        "Invoices and payment gateway transactions synchronize via automated webhooks.",
+      ],
     },
     decisions: [
       {
-        decision: "Append-Only Immutable Ledger Model",
+        decision: "Idempotent Event Ingestion via Deduplication Keys",
         rationale:
-          "Rather than updating a mutable 'account_balance' column, every billing action creates an immutable ledger row (debit/credit). Balances are computed deterministically, making audits and financial rollbacks foolproof.",
+          "Network drops cause client libraries and webhooks to retry requests. Validating an idempotency key prior to processing guarantees that repeated event transmissions are acknowledged without duplicating charge records.",
       },
       {
-        decision: "Two-Phase Seat Proration Formulation",
+        decision: "Decoupled Asynchronous Batch Aggregation",
         rationale:
-          "Mid-cycle license seat changes compute unused seconds of the prior seat tier and credit them against the remaining seconds of the new tier. This eliminated customer billing disputes caused by rounding errors.",
+          "Writing directly to customer balance tables on every single consumption event creates high row-lock contention. Buffering events and aggregating in batches eliminated lock waits while maintaining accurate billing periods.",
       },
       {
-        decision: "Redis Idempotency Buffer with 7-Day TTL",
+        decision: "Integer Cent Currency Math",
         rationale:
-          "Network hiccups frequently cause client libraries to retry webhook postbacks. An atomic Redis key check ensures each event UID is processed exactly once, even during gateway replay attacks.",
+          "Floating-point representation causes compounding rounding discrepancies. Storing all monetary values and proration calculations as integer cents ensures deterministic financial balance.",
       },
     ],
     tradeoffs: [
       {
         aspect: "Batch Aggregation vs Real-Time DB Writes",
-        chosen: "In-memory time-bucket aggregation before writing ledger entries.",
-        alternative: "Write SQL transaction on every single usage event.",
+        chosen: "Asynchronous interval aggregation before writing balance updates.",
+        alternative: "Synchronous database transaction on every usage event.",
         impact:
-          "Eliminated row lock contention on hot tenant records, introducing a predictable 60-second aggregation latency.",
+          "Eliminated database row-lock contention, introducing an acceptable operational aggregation window for usage displays.",
       },
       {
-        aspect: "Webhook Failure Recovery",
-        chosen: "Dead-letter queues (DLQ) paired with automated exponential dunning jobs.",
-        alternative: "Immediate synchronous payment failure cancellation.",
+        aspect: "Payment Gateway Failure Recovery",
+        chosen: "Automated retry workers with exponential backoff and customer notification flows.",
+        alternative: "Immediate account cancellation on first payment gateway failure.",
         impact:
-          "Provided a 72-hour grace period that recovered involuntary subscription churn without manual human intervention.",
+          "Recovered failed renewal payments gracefully without unnecessary administrative intervention.",
       },
     ],
     reliabilityAndSecurity:
-      "All monetary values are stored in integer cents to prevent floating-point inaccuracies. Critical billing operations run under database transactions with strict row locks (`FOR UPDATE`) to prevent race conditions during concurrent seat additions.",
+      "All financial operations execute under database transactions with strict constraint validation. Webhooks from payment providers verify cryptographic signatures before triggering subscription updates.",
     results: [
-      "Eliminated duplicate billing reports across all high-frequency API consumption clients.",
-      "Supported hybrid seat-plus-usage subscription plans across enterprise accounts.",
-      "Achieved sub-10ms event ingestion acknowledgment latency at the gateway.",
-      "Automated 100% of webhook failure retries with graceful customer notification flows.",
+      "Prevented duplicate billing reports across high-frequency API consumption clients.",
+      "Supported hybrid seat-plus-usage subscription plans across enterprise customer tiers.",
+      "Automated webhook failure retries with graceful notification flows.",
+      "Eliminated proration rounding discrepancies through integer math calculation.",
     ],
     lessonsLearned:
-      "Never store currency as floating-point numbers, and never rely on third-party webhook delivery order. Building distributed financial systems requires designing for idempotency and immutable ledgers from day one.",
+      "In financial and subscription infrastructure, designing for idempotency and asynchronous decoupling from day one prevents costly billing reconciliation errors.",
     technologies: [
       "Node.js",
       "PostgreSQL",
@@ -257,141 +226,122 @@ export const caseStudies = [
       "Message Queues",
       "Stripe API",
       "Docker",
-      "Transactional Outbox",
-      "REST / gRPC",
+      "REST APIs",
     ],
   },
   {
     slug: "commerce-discovery",
     title: "High-Throughput Commerce Discovery with Apache Solr",
-    shortTitle: "Dynamic Commerce Discovery",
-    category: "Search & Distributed Query Optimization",
-    role: "Senior Backend Engineer",
+    shortTitle: "Solr Commerce Discovery",
+    category: "Search & Catalog Discovery",
+    role: "Backend & Systems Engineer",
     company: "Mirraw",
-    headline: "Dynamic landing pages, faceted search, and sub-100ms catalog discovery across 500k+ SKUs.",
+    headline: "Dynamic landing pages, multi-faceted filtering, and catalog discovery across 500k+ SKUs.",
     overview:
-      "Architected the search and dynamic catalog discovery tier for Mirraw, serving international e-commerce traffic across 220+ countries. Replaced slow relational catalog queries with a high-performance Apache Solr distributed search cluster featuring dynamic landing pages and intelligent facet caching.",
+      "Engineered search and catalog discovery infrastructure at Mirraw for global e-commerce traffic spanning 220+ countries. Implemented an Apache Solr distributed search tier with dynamic landing pages, multi-attribute faceted navigation, and catalog caching across 500,000+ active SKUs.",
     reportedScope: {
       catalog: "500,000+ Active SKUs",
-      reach: "Traffic from 220+ Countries",
-      speedImprovement: "~40% Faster Catalog Discovery (Reported CV Benchmark)",
-      architecture: "Distributed Solr Cluster + CDN Edge",
+      reach: "Traffic from 220+ Countries (Reported CV Scope)",
+      speedImpact: "~40% Faster Catalog Discovery (Reported CV Benchmark)",
+      architecture: "Distributed Apache Solr + Edge Caching",
     },
     context:
-      "Mirraw operates a massive marketplace of traditional ethnic wear with deep variations (fabric, color, occasion, price, delivery ETA, regional seller). Standard SQL queries for faceted filtering suffered severe degradation under seasonal holiday traffic surges. The marketing team required on-the-fly dynamic landing pages based on search trends and campaign tags.",
+      "Mirraw operates an international marketplace with high-cardinality variations (fabric, color, occasion, price, regional seller). Standard relational database queries for multi-attribute faceted searches suffered severe response degradation during festive traffic spikes. The business required rapid, flexible dynamic landing pages based on search trends.",
     constraints: [
-      "Sub-100ms query response time for complex multi-attribute faceted queries.",
-      "Real-time inventory changes (out of stock, price updates) must reflect in search indexes without heavy full rebuilds.",
-      "Edge caching must accommodate country-specific currencies and localized pricing rules.",
-      "High availability during flash sales with 10x normal traffic spikes.",
+      "Fast response times for complex multi-attribute faceted queries across 500k+ SKUs.",
+      "Inventory updates (stock changes, price deltas) must reflect in search indexes without heavy full rebuilds.",
+      "Edge caching must accommodate multi-currency pricing for global visitors.",
+      "Maintain high search availability during high-traffic festival sales.",
     ],
     personalContribution: [
-      "Architected the Apache Solr schema and index structure optimized for multi-value faceted navigation.",
-      "Engineered automated dynamic landing page generation matching campaign URL slugs to complex Solr filter queries.",
-      "Implemented Solr filter cache (`fq`) pre-warming and field value caching strategies.",
-      "Designed asynchronous CDC (Change Data Capture) workers propagating catalog and stock deltas into Solr.",
-      "Configured multi-tier edge CDN caching for static category carousels with stale-while-revalidate policies.",
+      "Configured Apache Solr schema and index structures optimized for multi-value faceted filtering.",
+      "Engineered dynamic landing page generation translating campaign parameters into Solr filter queries.",
+      "Implemented Solr filter query caching strategies to maximize cache reuse on frequent filters.",
+      "Built asynchronous worker jobs pushing stock and price updates to Solr in micro-batches.",
+      "Coordinated edge CDN caching policies for category listings and promotional carousels.",
     ],
     architecture: {
       description:
-        "Traffic from 220+ countries arrives through global edge CDN nodes. Anonymous category listings hit CDN edge caches. Dynamic and personalized searches pass to the Node.js API tier, which queries an Apache Solr master-replica cluster. Solr executes faceted counts and product IDs, and the API tier inflates lightweight display representations from high-speed Redis replicas.",
-      flow: [
-        "Shopper visits dynamic campaign URL (e.g. /designer-silk-sarees?color=maroon&price_tier=premium)",
-        "Edge CDN checks for warmed cache copy matching normalized query parameters",
-        "On cache miss, request hits Node.js Backend Discovery Service",
-        "Service translates attributes into Solr Filter Queries (fq) and DisMax relevance query",
-        "Solr Cluster utilizes warmed filterCache and documentCache to evaluate matches in <25ms",
-        "Faceted counts (available fabrics, size counts, price distributions) returned in single response",
-        "Product metadata hydrated from local Redis cache; response rendered with lazy carousel hooks",
-        "Edge CDN stores response with localized cache key for subsequent regional shoppers",
+        "Global visitor traffic reaches edge CDN nodes. Unfiltered category listings are served from edge caches. Filtered searches pass to the Backend Discovery Service, which queries the Apache Solr cluster for matching SKU IDs and facet counts, hydrating presentation data from high-speed cache replicas.",
+      layers: [
+        {
+          name: "Global Edge & Ingress",
+          items: ["Global Traffic (220+ Countries)", "Edge CDN (Query Normalization & Cache)"],
+        },
+        {
+          name: "Discovery API Tier",
+          items: ["Node.js Discovery Service", "Solr Query DSL Generator"],
+        },
+        {
+          name: "Search Cluster Tier",
+          items: ["Apache Solr Sharded Cluster", "Filter Cache (fq) & Document Cache"],
+        },
+        {
+          name: "Data Hydration & Primary DB",
+          items: ["Redis Metadata Cache", "Catalog & Inventory Primary Database"],
+        },
       ],
-      diagram: `
-+-----------------------------------------------------------------------------------+
-|                     GLOBAL SHOPPERS (220+ COUNTRIES)                              |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | HTTPS / Regional Request
-                                          v
-+-----------------------------------------------------------------------------------+
-|                        EDGE CDN (CLOUDFLARE / FASTLY)                             |
-|  - Query normalization                - Stale-while-revalidate rules              |
-|  - Geo-IP currency routing            - Category carousel edge cache              |
-+-----------------------------------------------------------------------------------+
-                                          | (Cache Miss / Filtered Query)
-                                          v
-+-----------------------------------------------------------------------------------+
-|                        BACKEND DISCOVERY API CLUSTER                              |
-|  - Solr Query DSL builder             - Facet & ranking orchestrator              |
-|  - Redis metadata hydration           - Dynamic landing page resolver             |
-+-----------------------------------------------------------------------------------+
-           |                                                      |
-           | Solr Search Query (fq + DisMax)                      | Hydrate Metadata (<1ms)
-           v                                                      v
-+----------------------------------------+              +---------------------------+
-|          APACHE SOLR CLUSTER           |              |       REDIS REPLICA       |
-|  - Document Cache & Filter Cache       |              |  - SKU metadata, images   |
-|  - Dynamic Schema (500k+ SKUs)         |              |  - Localized pricing      |
-|  - Master-Replica Sharded Index        |              |  - Real-time stock status |
-+----------------------------------------+              +---------------------------+
-                   ^
-                   | Asynchronous Delta Sync (CDC)
-+-----------------------------------------------------------------------------------+
-|                      PRIMARY INVENTORY & CATALOG DATABASE                         |
-+-----------------------------------------------------------------------------------+
-`,
+      flow: [
+        "Shopper accesses dynamic campaign URL with attribute filters (e.g., color, fabric, price range).",
+        "Edge CDN checks for normalized cached response for anonymous traffic.",
+        "On cache miss, request routes to Backend Discovery Service.",
+        "Service constructs Solr Filter Queries (fq) isolating unranked filters from relevance queries.",
+        "Solr evaluates matching documents and computes dynamic facet counts.",
+        "Service hydrates product presentation metadata from Redis cache.",
+        "Response returns to user and populates edge cache with regional cache headers.",
+      ],
     },
     decisions: [
       {
-        decision: "Filter Query (`fq`) Isolation from Scoring Query (`q`)",
+        decision: "Separation of Filter Queries (`fq`) from Scoring Queries (`q`)",
         rationale:
-          "In Solr, `fq` results are cached in memory as unranked bitsets independently of the relevance query `q`. Isolating filters (e.g., in_stock:true, category:sarees) meant 90%+ of filter bitsets were served directly from memory, drastically reducing CPU load.",
+          "In Apache Solr, `fq` results are cached as unranked bitsets independently of relevance scoring. Separating static attributes (category, stock status) into `fq` allowed high cache reuse across differing user searches.",
       },
       {
-        decision: "Two-Tier Catalog Hydration (Solr for IDs, Redis for Presentation)",
+        decision: "Two-Tier Data Hydration (Search Index for IDs, Cache for Metadata)",
         rationale:
-          "Storing large JSON product blobs inside Solr bloats the index size and degrades search speed. We configured Solr to return only SKU IDs and facet counts, hydrating the full presentation payload in parallel from Redis in under 2ms.",
+          "Storing large JSON product blobs inside Solr bloats the index and increases memory pressure. Solr returns SKU IDs and facet counts, while full product display objects are hydrated from Redis.",
       },
       {
-        decision: "Delta Indexing via Change Data Capture Worker Queues",
+        decision: "Micro-Batch Index Updates via Asynchronous Workers",
         rationale:
-          "Instead of triggering costly full collection rebuilds, inventory events push SKU delta updates to an asynchronous worker queue that commits micro-batches to Solr every 15 seconds.",
+          "Executing commits on Solr for every individual inventory change causes excessive disk I/O. Asynchronous workers batch updates every few seconds, maintaining search performance during flash traffic.",
       },
     ],
     tradeoffs: [
       {
         aspect: "Search Index Consistency",
-        chosen: "Near-real-time (NRT) soft commits every 15 seconds.",
-        alternative: "Strict synchronous commit on every inventory update.",
+        chosen: "Near-real-time index commits in micro-batches.",
+        alternative: "Strict synchronous commit on every single stock change.",
         impact:
-          "Avoided disk thrashing on Solr replicas during peak sale events, accepting a maximum 15-second window where newly sold-out items might appear in search before cart validation catches them.",
+          "Protected Solr cluster stability during traffic surges, with an acceptable brief interval where cart checkout validation catches newly exhausted items.",
       },
       {
         aspect: "Faceted Count Cardinality",
-        chosen: "Pre-computed top facets with dynamic pagination.",
-        alternative: "Computing all 80+ dynamic attribute facet combinations on every hit.",
+        chosen: "Pre-configured primary facets with paginated secondary filters.",
+        alternative: "Computing all possible dynamic attribute facet combinations on every query.",
         impact:
-          "Halved query computation time while preserving customer satisfaction for 99% of search queries.",
+          "Reduced search CPU utilization while preserving deep faceted exploration for shoppers.",
       },
     ],
     reliabilityAndSecurity:
-      "Solr query parsers sanitize user search inputs to prevent Solr injection vulnerabilities. Dedicated search read-replicas ensure that intensive marketing campaigns and automated scrapers never impact transactional checkout operations.",
+      "Query builders sanitize all search inputs to prevent injection vulnerabilities. Read replicas isolate search traffic so intense browsing never impacts transaction processing.",
     results: [
-      "Reported CV Benchmark: Approximately ~40% faster catalog discovery compared to legacy SQL queries.",
-      "Sub-60ms P95 search latency across 500k+ SKUs under peak holiday load.",
-      "Seamlessly powered marketing campaigns generating hundreds of dynamic landing pages without code deployments.",
-      "Maintained 99.95%+ search uptime across high-concurrency festival sale periods.",
+      "Reported CV Benchmark: Approximately ~40% faster catalog discovery compared to legacy relational queries.",
+      "Maintained fast faceted search response times across 500,000+ SKUs.",
+      "Enabled rapid dynamic landing page creation for marketing campaigns without code deployments.",
+      "Supported reliable search uptime during peak seasonal shopping surges.",
     ],
     lessonsLearned:
-      "Relational databases are built for transactional integrity, not multi-dimensional discovery. Decoupling search into a dedicated inverted-index engine like Solr or Elasticsearch is essential for modern high-catalog e-commerce.",
+      "Decoupling catalog search from relational transaction tables into a dedicated inverted-index search engine is essential for high-cardinality e-commerce discovery.",
     technologies: [
       "Apache Solr",
       "Node.js",
       "Redis",
       "PostgreSQL / MySQL",
       "Docker",
-      "Cloudflare CDN",
-      "Faceted Navigation",
-      "DisMax Query Parser",
+      "Edge CDN",
+      "Faceted Search",
     ],
   },
   {
@@ -401,253 +351,217 @@ export const caseStudies = [
     category: "Transaction Systems & Inventory Logic",
     role: "Backend Engineer",
     company: "Mirraw",
-    headline: "Hierarchical LineItem → LineItemAddon domain model with atomic checkout inventory reservations.",
+    headline: "Hierarchical LineItem → LineItemAddon domain model with multi-item checkout validation.",
     overview:
-      "Redesigned the shopping cart and checkout pipeline to support customizable e-commerce purchases. Built the composable LineItem to LineItemAddon model, enabling shoppers to attach custom blouse stitching, fall/edging services, matching accessories, and gift wrapping to individual items with dynamic price recalculation and per-addon inventory locks.",
+      "Engineered the shopping cart and checkout customization pipeline for Mirraw. Built the composable LineItem to LineItemAddon domain model, enabling shoppers to attach custom tailoring services, measurements, gift packaging, and matching accessories to individual items with dynamic price recalculation and per-addon inventory validation.",
     reportedScope: {
       platform: "Mirraw Core Checkout & Cart",
       domainModel: "LineItem → LineItemAddon Hierarchy",
-      catalogImpact: "Zero SKU Duplication for 100k+ Custom Combinations",
-      checkoutIntegrity: "Atomic Multi-Item Inventory Locks",
+      catalogEfficiency: "Supported Custom Combinations without Catalog Duplication",
+      validation: "Multi-Item Inventory Validation on Checkout",
     },
     context:
-      "Traditional e-commerce carts assume static products. In Indian ethnic wear, garments frequently require customization: unstitched fabric requires stitching services, custom measurements, matching petticoats, or express gift wrapping. Creating unique database SKUs for every permutation caused massive catalog explosion. The business needed composable addons attached directly to cart line items.",
+      "Traditional e-commerce carts assume simple static products. In specialized apparel, garments often require customization: custom stitching measurements, accessory attachments, or packaging. Generating separate database SKUs for every permutation created catalog explosion. The business needed composable addons attached directly to cart items.",
     constraints: [
-      "Prevent overselling: Addon items (e.g. limited matching jewelry or specific fabric) must be inventory-locked alongside the primary garment.",
-      "Complex price formulas: Custom tailoring fees vary by measurement tier, fabric complexity, and currency conversion.",
-      "Cart state modifications (e.g. quantity changes or removing an item) must cascade cleanly to all child addons.",
-      "Zero checkout race conditions during flash sales when multiple shoppers claim the last item simultaneously.",
+      "Prevent overselling: Physical addon items (e.g. matching accessories) must be inventory-validated alongside the primary garment.",
+      "Customization fee calculations must reflect custom measurements and regional pricing.",
+      "Cart operations (quantity changes, deletions) must cascade cleanly to child addons.",
+      "Prevent race conditions when multiple shoppers attempt to checkout limited-stock items.",
     ],
     personalContribution: [
-      "Architected the normalized relational domain schema representing LineItem and child LineItemAddon entities.",
-      "Engineered the cart pricing engine calculating tiered customization charges and applying regional tax rules.",
-      "Implemented a two-phase atomic inventory reservation flow using Redis distributed locks and database transactions.",
-      "Built validation logic reconciling garment readiness dates with addon processing lead times.",
-      "Designed checkout failure recovery handlers releasing reserved addon inventory if payment is abandoned.",
+      "Architected the relational domain schema representing parent LineItems and child LineItemAddon entities.",
+      "Engineered cart pricing engine calculating tiered customization charges and addon fees.",
+      "Implemented inventory validation checks evaluating both primary and addon items prior to order confirmation.",
+      "Built validation logic reconciling garment dispatch dates with custom tailoring lead times.",
+      "Designed checkout failure recovery releasing reserved items if checkout is abandoned.",
     ],
     architecture: {
       description:
-        "The composable cart model treats the cart as a composite state machine. A Cart contains multiple LineItems, and each LineItem maintains a collection of LineItemAddons (services, physical accessories, gift packaging). At checkout, an Inventory Coordinator acquires atomic Redis locks across both the parent SKU and all attached addon SKUs, validating stock before initiating payment.",
-      flow: [
-        "Shopper selects Saree SKU and configures Custom Stitching (+ measurements) & Matching Clutch (+ SKU-902)",
-        "API calls POST /api/v1/cart/items with nested addon payload",
-        "Cart Domain Validator checks addon compatibility against parent category rules",
-        "Pricing Engine computes aggregate line item total: base price + customization fee + physical addon",
-        "On Proceed to Checkout, Inventory Lock Coordinator attempts atomic reservation of parent & addon items",
-        "If all items lock successfully, payment intent is created with a 15-minute reservation TTL",
-        "On successful webhook, reservation converts to confirmed OrderLineItem records; on timeout, locks auto-release",
+        "The cart model structures items hierarchically. A Cart contains LineItems, and each LineItem maintains associated LineItemAddons (services, physical accessories, packaging). At checkout, the validation coordinator evaluates stock availability across both the parent SKU and all associated addon items before payment processing.",
+      layers: [
+        {
+          name: "Cart State & API Layer",
+          items: ["Shopping Cart Controller", "Nested Addon Payload Validator"],
+        },
+        {
+          name: "Domain & Pricing Engine",
+          items: ["LineItem → LineItemAddon Domain Model", "Dynamic Pricing & Tax Calculator"],
+        },
+        {
+          name: "Validation & Lock Coordinator",
+          items: ["Inventory Validation Coordinator", "Atomic Checkout Reservation"],
+        },
+        {
+          name: "Order & Inventory Store",
+          items: ["PostgreSQL Order Store", "Inventory Delta Service"],
+        },
       ],
-      diagram: `
-+-----------------------------------------------------------------------------------+
-|                             SHOPPING CART INSTANCE                                |
-+-----------------------------------------------------------------------------------+
-                                          |
-                        +-----------------+-----------------+
-                        |                                   |
-                        v                                   v
-+-----------------------------------+   +-----------------------------------+
-|         LINE ITEM #1              |   |         LINE ITEM #2              |
-|  - SKU: Saree-Silk-01             |   |  - SKU: Kurta-Men-04              |
-|  - Quantity: 1                    |   |  - Quantity: 1                    |
-|  - Base Price: $120.00            |   |  - Base Price: $65.00             |
-+-----------------------------------+   +-----------------------------------+
-        |                   |
-        | Child Addon #1    | Child Addon #2
-        v                   v
-+-------------------+   +-------------------+
-|  SERVICE ADDON    |   |  PHYSICAL ADDON   |
-|  - Type: Stitching|   |  - SKU: Clutch-09 |
-|  - Custom Specs   |   |  - Price: $25.00  |
-|  - Fee: $35.00    |   |  - Stock Req: 1   |
-+-------------------+   +-------------------+
-        |                   |
-        +---------+---------+
-                  |
-                  v (Atomic Reservation Request)
-+-----------------------------------------------------------------------------------+
-|                       INVENTORY COORDINATOR & LOCK MANAGER                        |
-|  - Multi-key Redis lock: [lock:saree-01, lock:clutch-09]                          |
-|  - Atomic Lua evaluation: Ensure (stock_saree >= 1) && (stock_clutch >= 1)        |
-|  - Rollback if ANY component is out of stock                                      |
-+-----------------------------------------------------------------------------------+
-`,
+      flow: [
+        "Shopper selects garment SKU and adds custom stitching specifications and matching accessory.",
+        "API validates addon compatibility against parent category rules.",
+        "Pricing engine computes aggregated total: base price + customization fee + physical addon.",
+        "On checkout initiation, validation coordinator verifies stock for both parent and child items.",
+        "Temporary reservation holds stock during payment gateway redirect.",
+        "Upon payment webhook confirmation, reservation converts to confirmed order records; otherwise stock is released.",
+      ],
     },
     decisions: [
       {
-        decision: "Relational LineItemAddon Structure vs Flat JSON Column",
+        decision: "Relational LineItemAddon Model vs Untyped JSON Blob",
         rationale:
-          "Storing addons as an untyped JSON blob inside cart records would prevent SQL-level inventory validation and foreign key constraints. A first-class `line_item_addons` table with explicit foreign keys to products and service definitions ensured relational integrity.",
+          "Storing addons as unstructured JSON within cart records prevents SQL-level foreign key enforcement and direct inventory verification. A normalized child table ensured database integrity and explicit relationship tracking.",
       },
       {
-        decision: "Multi-Key Atomic Lua Reservation Script",
+        decision: "Atomic Multi-Item Inventory Validation at Checkout",
         rationale:
-          "Reserving parent items and child addons sequentially opens race conditions where the parent is reserved but an addon fails, leaving dangling locks. An atomic Redis Lua script checks and decrements all related inventory counters in a single atomic operation.",
+          "Validating parent and child items sequentially creates race conditions where a parent item succeeds but an addon fails. Validating all items within an atomic transaction prevents partial order states.",
       },
       {
-        decision: "Cascade Lifecycle Hook on LineItem Mutations",
+        decision: "Cascading Cart Lifecycle Operations",
         rationale:
-          "If a user changes parent item quantity from 1 to 2, service addons (custom stitching) and physical addons scale appropriately or prompt for per-unit measurements. Deleting a parent item cascades and cleans up child attachments automatically.",
+          "Mutations on the parent LineItem (such as removing an item or modifying quantity) cascade predictably to child customization records to prevent orphaned service charges.",
       },
     ],
     tradeoffs: [
       {
-        aspect: "Inventory Lock Expiration",
-        chosen: "15-minute temporary reservation TTL backed by Redis keys with expiry events.",
-        alternative: "Hard database locking until order cancellation.",
+        aspect: "Stock Reservation Hold Duration",
+        chosen: "Time-limited temporary stock hold during checkout with automatic expiration.",
+        alternative: "Indefinite locking until manual administrative review.",
         impact:
-          "Guaranteed that abandoned checkout carts release scarce inventory back to the marketplace within 15 minutes without requiring manual administrative intervention.",
+          "Ensured that abandoned payment attempts automatically return scarce inventory to the catalog without manual intervention.",
       },
       {
-        aspect: "Pricing Calculation Overhead",
-        chosen: "On-demand recalculation with cached tax tables.",
-        alternative: "Pre-computed pricing tables.",
+        aspect: "Pricing Calculation Timing",
+        chosen: "On-demand price recalculation on cart modification.",
+        alternative: "Pre-computed static price matrices.",
         impact:
-          "Slightly increased CPU compute per cart view (sub-5ms), but ensured 100% pricing accuracy under fluctuating exchange rates and coupon applications.",
+          "Accommodated fluctuating exchange rates and promotional discounts with minimal calculation overhead.",
       },
     ],
     reliabilityAndSecurity:
-      "All price calculations execute exclusively on the backend; client-submitted price fields are discarded. Database transactions use optimistic concurrency controls (`version` checks) to reject stale cart checkout attempts.",
+      "All pricing calculations execute exclusively on the backend; client-submitted price fields are ignored. Database transactions with optimistic locking prevent concurrent checkouts of exhausted stock.",
     results: [
-      "Supported hundreds of thousands of customized product combinations without creating redundant catalog SKUs.",
-      "Eliminated inventory mismatch incidents between garments and matching accessories during peak sales.",
-      "Maintained sub-15ms cart item mutation latency across high-traffic flash sales.",
-      "Directly empowered the business to offer high-margin tailoring services globally.",
+      "Supported thousands of customized apparel combinations without creating duplicate catalog SKUs.",
+      "Eliminated inventory mismatch incidents between garments and attached accessories.",
+      "Maintained fast cart mutation response times during peak shopping traffic.",
+      "Directly enabled international custom tailoring and gift options on the platform.",
     ],
     lessonsLearned:
-      "Customizable products require a domain model that treats services and physical items as composable entities. Ensuring atomic multi-resource inventory locking is the single most critical safeguard in e-commerce checkout architecture.",
+      "Complex e-commerce products require domain models that treat customization services and physical accessories as composable entities with unified inventory validation.",
     technologies: [
       "Node.js",
       "PostgreSQL",
-      "Redis Lua Scripting",
+      "Redis",
       "Docker",
-      "Transactional Outbox",
+      "REST APIs",
+      "Transaction Management",
       "E-Commerce Cart Architecture",
-      "Distributed Locks",
     ],
   },
   {
     slug: "distributed-analytics",
     title: "Distributed Geographic RPV Analytics & Ranking Feedback Loop",
     shortTitle: "Distributed RPV Analytics",
-    category: "Distributed Data & Analytics",
+    category: "Analytics & Ranking Systems",
     role: "Analytics Systems Engineer",
     company: "Mirraw",
     headline: "Country/timeframe Revenue-Per-Visitor analytics driving localized product ranking and ~20% conversion uplift.",
     overview:
-      "Built a distributed event analytics aggregation pipeline at Mirraw that processes shopper behavior across 220+ countries. Captured granular impressions, cart additions, and purchase transactions to compute localized Revenue-Per-Visitor (RPV) metrics, feeding real-time regional weighting back into search and catalog ranking algorithms.",
+      "Built an analytics aggregation pipeline at Mirraw processing shopper behavior across 220+ countries. Captured product impressions, cart additions, and purchase transactions to compute localized Revenue-Per-Visitor (RPV) metrics, feeding regional weights back into search and catalog ranking algorithms.",
     reportedScope: {
-      reach: "Shoppers Across 220+ Countries",
+      reach: "Shoppers Across 220+ Countries (Reported CV Scope)",
       conversionImpact: "~20% Conversion Uplift (Reported CV Result)",
-      pipeline: "Real-time Telemetry Ingestion to Ranking Feedback Loop",
+      pipeline: "Behavioral Telemetry to Catalog Ranking Loop",
       metric: "Localized Country/Timeframe Revenue Per Visitor (RPV)",
     },
     context:
-      "Global consumers have distinctly different purchasing powers, regional festival dates, and stylistic preferences. A product that converts exceptionally well in the United States or the UK may languish in domestic Indian markets or the Middle East. Static global product rankings depressed international conversion rates. Mirraw needed localized product scoring powered by real-time RPV analytics.",
+      "Global consumers have distinctly different purchasing power, regional festival dates, and stylistic preferences. A product that converts well in international diaspora markets may perform differently in domestic regions. Static global rankings depressed international conversion rates. Mirraw needed regional performance signals reflected in product discovery.",
     constraints: [
       "Telemetry ingestion must never introduce latency into the shopper's page render or checkout path.",
-      "High volume: Billions of raw browsing events per month across global mobile and web users.",
-      "Cold-start handling: New products with zero historical data must receive fair visibility without polluting top slots.",
-      "Time decay: Historical purchase spikes (e.g. Diwali season) must gracefully decay as seasonal trends shift.",
+      "Handle high-volume browsing events across international web and mobile traffic.",
+      "New catalog items with limited historical data must receive appropriate baseline visibility.",
+      "Historical purchase spikes (e.g. Diwali season) must decay gracefully as seasonal demand shifts.",
     ],
     personalContribution: [
-      "Engineered the asynchronous telemetry collection endpoint receiving batched beacon pings from client browsers.",
-      "Implemented stream aggregation workers computing rolling 7-day, 14-day, and 30-day RPV scores grouped by country.",
-      "Formulated the exponential time-decay ranking algorithm balancing immediate conversion with historical stability.",
-      "Integrated Google Analytics signals with internal transactional data to reconcile tracking discrepancies.",
-      "Constructed a high-speed Redis ranking cache queried by the search and recommendation services during catalog retrieval.",
+      "Engineered asynchronous telemetry collection endpoint receiving batched behavioral pings.",
+      "Implemented stream aggregation workers computing rolling country-level RPV scores across rolling time windows.",
+      "Formulated time-decay ranking adjustments balancing recent conversion with historical performance.",
+      "Integrated Google Analytics signals with internal order transaction records to verify funnel accuracy.",
+      "Maintained high-speed cached regional ranking weights queried during catalog retrieval.",
     ],
     architecture: {
       description:
-        "Browsers transmit lightweight beacon events to an analytics gateway. Events are buffered in memory and flushed to ingestion workers that compute rolling Revenue-Per-Visitor (RPV = Total Revenue / Unique Country Visitors) for each SKU and geographic cohort. Localized scores are published to a Redis sorted set queried by Solr search rankers as dynamic boost factors.",
-      flow: [
-        "User browser fires non-blocking Navigator.sendBeacon payload (event, sku_id, country, timestamp)",
-        "Edge Analytics Gateway validates payload and publishes to event stream broker",
-        "Stream Processing Workers consume events and aggregate metrics in sliding time windows",
-        "Worker calculates Country-RPV score with Bayesian smoothing for low-sample items",
-        "Scores are normalized (0.0 to 1.0) and written to Redis Geo-Score Hash Maps",
-        "When Solr executes a search query for a shopper in Country X, it injects an additive boost query: bf=product_geo_rpv_score",
-        "Products with higher regional resonance rise to top positions, maximizing revenue per impression",
+        "Client browsers transmit non-blocking telemetry beacons to the analytics gateway. Events are buffered and processed by aggregation workers that calculate rolling Revenue-Per-Visitor (RPV) scores for each SKU and country cohort. Normalized weights are cached in Redis and applied as dynamic boost parameters in Solr search queries.",
+      layers: [
+        {
+          name: "Telemetry Ingestion Layer",
+          items: ["Global Browsers (220+ Countries)", "Non-blocking Beacon Ingestion Endpoint"],
+        },
+        {
+          name: "Stream Processing & Aggregation",
+          items: ["Event Buffer Queue", "Rolling RPV Computation Workers"],
+        },
+        {
+          name: "Regional Score Cache",
+          items: ["Redis Geo-Score Store", "Normalized Country Weights"],
+        },
+        {
+          name: "Search & Discovery Feedback",
+          items: ["Apache Solr Dynamic Boost Query", "Localized Catalog Presentation"],
+        },
       ],
-      diagram: `
-+-----------------------------------------------------------------------------------+
-|                       CLIENT BROWSERS (220+ COUNTRIES)                            |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | Non-blocking Navigator.sendBeacon()
-                                          v
-+-----------------------------------------------------------------------------------+
-|                        LIGHTWEIGHT ANALYTICS INGESTION GATEWAY                    |
-|  - In-memory event buffer             - Geo-IP lookup                             |
-|  - Fast 204 No Content response       - Rate limiting & bot filtering             |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          v
-+-----------------------------------------------------------------------------------+
-|                     DISTRIBUTED AGGREGATION & STREAM WORKERS                      |
-|  - Rolling time-bucket window (7d/30d)- Revenue reconciliation with order DB      |
-|  - Bayesian smoothing for cold items  - Exponential time-decay weighting          |
-+-----------------------------------------------------------------------------------+
-           |                                                      |
-           | Write Historical Analytics                           | Push Localized Boost Weights
-           v                                                      v
-+----------------------------------------+              +---------------------------+
-|      ANALYTICS DATASTORE (WAREHOUSE)   |              |       REDIS GEO SCORES    |
-|  - Long-term reporting & trend analysis|              |  - Key: rpv:{country}:{sku}|
-|  - Offline model training data         |              |  - O(1) lookup during     |
-+----------------------------------------+              |    catalog generation     |
-                                                        +---------------------------+
-                                                                      |
-                                                                      v
-                                                        +---------------------------+
-                                                        |  SOLR SEARCH / DISCOVERY  |
-                                                        |  - Injects dynamic boost  |
-                                                        |    weights by user region |
-                                                        +---------------------------+
-`,
+      flow: [
+        "Client browser transmits non-blocking telemetry beacon (SKU ID, country, event type).",
+        "Analytics gateway validates payload and buffers event into processing queue.",
+        "Worker processes events in rolling time-windows, reconciling traffic with order revenue.",
+        "Worker calculates Country-RPV scores with baseline smoothing for low-sample items.",
+        "Normalized regional scores are updated in Redis cache.",
+        "When a user from Country X queries the catalog, the search service applies localized boost weights to product results.",
+      ],
     },
     decisions: [
       {
-        decision: "Bayesian Smoothing for Cold-Start Products",
+        decision: "Asynchronous Telemetry Ingestion via Non-Blocking Endpoints",
         rationale:
-          "Raw RPV computation causes volatile ranking: a single visitor who purchases a $300 item gives an unvetted product a massive artificial RPV score of $300. Implementing Bayesian average smoothing against the category prior prevented erratic ranking spikes.",
+          "Traditional synchronous analytics calls risk delaying page transitions or mobile navigation. Using asynchronous, non-blocking telemetry endpoints ensured data collection without impacting user Core Web Vitals.",
       },
       {
-        decision: "Asynchronous Browser Beacons via `sendBeacon`",
+        decision: "Rolling Time-Window RPV Scoring with Decay",
         rationale:
-          "Traditional synchronous XHR analytics calls delay page navigation and mobile unload handlers. Using `navigator.sendBeacon` guaranteed event delivery without degrading user experience or Core Web Vitals.",
+          "Lifetime revenue metrics fail to reflect emerging viral trends or changing seasons. A rolling 7-day and 30-day window with exponential decay allowed rankings to adapt dynamically to current demand.",
       },
       {
-        decision: "Dynamic Search Boost Injection vs Static Pre-Rendered Pages",
+        decision: "Dynamic Search Boost Injection vs Pre-Rendered Pages",
         rationale:
-          "Injecting localized RPV scores as a dynamic Solr boost parameter during query execution allowed a single shared index to serve customized rankings across all 220+ countries without duplicating catalog pages.",
+          "Applying regional RPV scores as dynamic boost weights during search query execution allowed a single shared index to serve personalized rankings across 220+ countries without multiplying static pages.",
       },
     ],
     tradeoffs: [
       {
-        aspect: "Analytics Processing Cadence",
-        chosen: "Hourly rolling batch recalculation of regional weights.",
-        alternative: "Instant per-click stream updates.",
+        aspect: "Analytics Recalculation Cadence",
+        chosen: "Periodic rolling aggregation of regional scores.",
+        alternative: "Instant stream recalculation on every click.",
         impact:
-          "Drastically reduced database write load and Redis churn, with an acceptable 1-hour delay in reflecting emerging viral product trends.",
+          "Significantly reduced database write pressure and cache churn, with a brief, acceptable window in reflecting immediate micro-trends.",
       },
       {
         aspect: "Client Telemetry Privacy",
-        chosen: "Anonymized session identifiers stripped of personal identifiable information.",
-        alternative: "Tracking cross-site persistent cookies.",
+        chosen: "Anonymized session identifiers without cross-site persistent tracking.",
+        alternative: "Third-party cross-site tracking cookies.",
         impact:
-          "Full compliance with GDPR and international data privacy regulations while retaining statistical ranking efficacy.",
+          "Maintained full alignment with international privacy standards while retaining aggregate ranking efficacy.",
       },
     ],
     reliabilityAndSecurity:
-      "Ingestion endpoints feature automated rate limiting and bot filtering to prevent malicious actors from artificially inflating product visibility. All telemetry queues are decoupled from the primary database to guarantee that analytics traffic never compromises transaction processing.",
+      "Ingestion endpoints incorporate automated rate limiting and bot filtering to prevent artificial manipulation of product scores. Telemetry queues are isolated so analytics activity never affects primary checkout traffic.",
     results: [
       "Reported CV Result: Approximately ~20% overall conversion uplift attributed to localized RPV product ranking.",
-      "Processed tens of millions of monthly events without impacting transactional latency.",
-      "Eliminated regional conversion dead zones for high-value international diaspora markets.",
-      "Provided engineering and marketing leadership with verified country-level revenue metrics.",
+      "Processed millions of browsing and purchase events without impacting checkout latency.",
+      "Improved catalog relevance for international diaspora shoppers across major global markets.",
+      "Provided leadership with clear country-level revenue-per-visitor insights.",
     ],
     lessonsLearned:
-      "Raw traffic volume is a vanity metric; revenue per visitor (RPV) is an architectural reality. Tailoring distributed discovery to regional purchasing habits creates direct, measurable business value.",
+      "Aligning distributed product discovery with localized regional purchasing behavior creates direct, measurable business value.",
     technologies: [
       "Node.js",
       "Redis",
@@ -655,7 +569,6 @@ export const caseStudies = [
       "PostgreSQL",
       "Docker",
       "Google Analytics API",
-      "Bayesian Statistics",
       "Stream Processing",
     ],
   },
@@ -663,122 +576,106 @@ export const caseStudies = [
     slug: "distributed-rate-limiter",
     title: "High-Throughput Distributed Rate Limiter with Redis Lua & gRPC",
     shortTitle: "Distributed Rate Limiter",
-    category: "High Concurrency & Resilience",
-    role: "Systems Architect & Author",
+    category: "High Concurrency & Systems Engineering",
+    role: "Author & Systems Engineer",
     company: "Personal Systems Engineering Project",
-    headline: "Low-latency API protection benchmarked at 50k+ req/sec with ~3ms P99 latency.",
+    headline: "Low-latency API protection benchmarked at 50,000+ req/sec with ~3ms P99 latency.",
     overview:
-      "Engineered an ultra-low latency distributed rate limiting and API protection service using Python asyncio, gRPC, and atomic Redis Lua scripts. Designed to safeguard microservices against abusive traffic spikes, DDoS attempts, and API quota abuse in high-concurrency environments.",
+      "Engineered an ultra-low latency distributed rate limiting and API protection service using Python asyncio, gRPC, and atomic Redis Lua scripts. Designed to safeguard microservices against abusive traffic spikes and quota abuse under high-concurrency loads.",
     reportedScope: {
-      projectType: "Personal Systems Engineering & Benchmark Project",
+      projectType: "Independent Systems Benchmark Project",
       throughput: "50,000+ Requests / Second (Benchmark Test Result)",
       latency: "~3 ms P99 Latency (Load-Tested Under Concurrency)",
       protocols: "gRPC (HTTP/2 Multiplexing) + REST Gateway",
     },
     context:
-      "Modern microservices architectures require centralized rate limiting to protect downstream databases and third-party payment gateways. Naive client-side counters or distributed locks suffer severe race conditions and network round-trip overhead. This project was built to test the extreme limits of single-round-trip atomic sliding-window limiting under simulated flash-crowd conditions.",
+      "Modern microservices require centralized rate limiting to protect downstream databases and third-party services. Naive distributed locks or multiple round-trip checks introduce network overhead and race conditions. This project evaluated single-round-trip atomic sliding-window rate limiting under simulated high-concurrency loads.",
     constraints: [
-      "Sub-5ms P99 decision latency to avoid adding overhead to upstream reverse proxies.",
-      "Strict zero race conditions across concurrent multi-threaded worker nodes.",
-      "Sliding window accuracy rather than simplistic fixed-window bursts.",
-      "Graceful fail-open / fail-closed configurable circuit breakers during Redis cluster degradation.",
+      "Sub-5ms decision latency to avoid adding overhead to upstream reverse proxies.",
+      "Zero race conditions across concurrent multi-threaded worker nodes.",
+      "Sliding-window accuracy rather than coarse fixed-window bursts.",
+      "Graceful fail-open circuit breaking during cache degradation.",
     ],
     personalContribution: [
-      "Designed and authored the Python asyncio gRPC server handling concurrent connection multiplexing.",
+      "Designed and authored Python asyncio gRPC server handling concurrent connection multiplexing.",
       "Authored optimized Redis Lua scripts executing atomic sliding-window timestamp evaluations in a single round trip.",
-      "Configured protocol buffer definitions (`.proto`) for strongly-typed client-server contracts.",
-      "Dockerized the architecture with horizontal pod scaling and local connection pooling.",
+      "Configured Protocol Buffer definitions (`.proto`) for strongly-typed client-server contracts.",
+      "Dockerized the service with horizontal container scaling and connection pooling.",
       "Conducted rigorous load testing using `ghz` and `locust`, measuring P50, P90, and P99 latency percentiles.",
     ],
     architecture: {
       description:
-        "The service operates as a high-performance sidecar or ingress middleware. Upstream reverse proxies (NGINX / Envoy) emit lightweight gRPC `CheckRateLimit` calls over HTTP/2. The service executes an atomic Lua script on a Redis cluster, which maintains a sorted set of timestamps per client key, purging expired entries and deciding admissibility in O(log(N)) time.",
-      flow: [
-        "Upstream proxy or microservice makes gRPC CheckLimit(client_id, limit, window_seconds)",
-        "Asyncio worker receives request over persistent HTTP/2 connection",
-        "Worker executes pre-loaded Redis Lua script with client key SHA-256",
-        "Lua script removes timestamps older than (current_time - window_seconds)",
-        "Lua script counts remaining elements: if count < limit, adds current timestamp and sets TTL",
-        "Lua script returns atomic tuple: [allowed: boolean, remaining: int, reset_ms: int]",
-        "gRPC response delivered to caller; proxy permits or returns HTTP 429 Too Many Requests",
+        "The service operates as a high-performance sidecar or ingress middleware. Upstream reverse proxies (NGINX / Envoy) emit lightweight gRPC `CheckRateLimit` calls over HTTP/2. An atomic Redis Lua script manages a sliding-window sorted set of timestamps per client key, determining admissibility in a single round trip.",
+      layers: [
+        {
+          name: "Ingress & Upstream Proxy",
+          items: ["Upstream Ingress / Reverse Proxy", "gRPC CheckLimit Client (HTTP/2)"],
+        },
+        {
+          name: "Limiter Service Cluster",
+          items: ["Python Asyncio Workers", "Circuit Breaker Middleware"],
+        },
+        {
+          name: "Atomic State Engine",
+          items: ["Redis Cluster", "Atomic Lua Sliding-Window Script (EVALSHA)"],
+        },
+        {
+          name: "Decision & Downstream Protection",
+          items: ["Allow: Forward to Services", "Block: Return HTTP 429 Too Many Requests"],
+        },
       ],
-      diagram: `
-+-----------------------------------------------------------------------------------+
-|                        UPSTREAM API GATEWAY / REVERSE PROXY                       |
-|                             (ENVOY / NGINX / INGRESS)                             |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | gRPC CheckRateLimit() over HTTP/2
-                                          v
-+-----------------------------------------------------------------------------------+
-|                     DISTRIBUTED RATE LIMITER SERVICE PODS                         |
-|  - Python Asyncio non-blocking loop   - Pre-compiled Protobuf stubs               |
-|  - Thread-safe Redis connection pool  - Configurable Fail-Open Circuit Breaker    |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | Single Round-Trip EVALSHA
-                                          v
-+-----------------------------------------------------------------------------------+
-|                        REDIS CLUSTER (ATOMIC LUA ENGINE)                          |
-|  - Sorted Set (ZSET) per client key:  Scores = Timestamps (microsecond)           |
-|  - ZREMRANGEBYSCORE: Purge expired entries outside sliding window                 |
-|  - ZCARD: Count active events in current window                                   |
-|  - ZADD: Conditionally append if below quota                                      |
-|  - EXPIRE: Refresh sliding key TTL                                                |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          | Atomic [Allowed, Remaining, ResetTime]
-                                          v
-+-----------------------------------------------------------------------------------+
-|                     DECISION RETURNED TO UPSTREAM PROXY                           |
-|  - Allow: Forward request to downstream microservices                             |
-|  - Block: Return HTTP 429 Too Many Requests + Retry-After headers                 |
-+-----------------------------------------------------------------------------------+
-`,
+      flow: [
+        "Upstream proxy makes gRPC CheckLimit(client_id, limit, window_seconds) over persistent connection.",
+        "Asyncio worker executes pre-compiled Redis Lua script with client key.",
+        "Lua script purges expired timestamps older than the sliding window threshold.",
+        "Lua script evaluates active entry count: if below limit, appends current timestamp and refreshes TTL.",
+        "Lua script returns atomic tuple: [allowed: boolean, remaining: int, reset_ms: int].",
+        "Decision returns to upstream proxy: permitted requests proceed; excess requests receive HTTP 429.",
+      ],
     },
     decisions: [
       {
-        decision: "Sliding-Window Log in Redis ZSET vs Token Bucket",
+        decision: "Atomic Redis Lua Scripting via `EVALSHA`",
         rationale:
-          "Fixed windows suffer 2x burst anomalies at boundary edges. A sliding-window log implemented via Redis Sorted Sets guarantees mathematically exact rate limits over any sliding duration, completely eliminating boundary burst exploits.",
+          "Executing multiple Redis commands (purge, count, add, expire) across network hops introduces race conditions and multiplies network latency. Encapsulating logic inside a pre-compiled Lua script guarantees atomic execution in a single network round-trip.",
       },
       {
-        decision: "Atomic Lua Script Execution via `EVALSHA`",
+        decision: "Sliding-Window Sorted Set vs Fixed Window",
         rationale:
-          "Executing multiple Redis commands (ZREMRANGE, ZCARD, ZADD, EXPIRE) across network hops creates race conditions and multiplies network latency 4x. Encapsulating logic inside a pre-compiled Lua script guarantees atomic execution on the Redis thread in a single round-trip.",
+          "Fixed windows suffer 2x burst anomalies at window boundary edges. A sliding-window log guarantees exact rate limits over any sliding duration, eliminating boundary burst vulnerabilities.",
       },
       {
         decision: "gRPC over HTTP/2 vs REST JSON",
         rationale:
-          "Binary Protobuf serialization eliminates JSON parse overhead, and HTTP/2 connection multiplexing allows thousands of rate-check requests to reuse a single TCP connection without socket exhaustion.",
+          "Binary Protobuf serialization eliminates JSON parsing overhead, and HTTP/2 connection multiplexing allows thousands of rate-check requests to share persistent connections.",
       },
     ],
     tradeoffs: [
       {
-        aspect: "Memory Consumption in Redis",
-        chosen: "Sorted set storing timestamp floats per request.",
-        alternative: "Approximate sliding-window counter using two fixed windows.",
+        aspect: "Memory Usage in Redis",
+        chosen: "Sorted set storing timestamp entries per request.",
+        alternative: "Approximated sliding-window counter using two fixed counters.",
         impact:
-          "Higher memory footprint per active key under heavy bursts, counteracted by aggressive ZREMRANGE purging and 60-second key expiration.",
+          "Higher memory footprint per active key under heavy bursts, counteracted by immediate pruning and 60-second key expiration.",
       },
       {
-        aspect: "Failure Strategy under Redis Outage",
-        chosen: "Configurable fail-open with local in-memory fallback.",
+        aspect: "Failure Strategy during Cache Outage",
+        chosen: "Configurable fail-open circuit breaker.",
         alternative: "Strict fail-closed blocking all platform traffic.",
         impact:
-          "Prevents an infrastructure cache outage from taking down business-critical checkout and user authentication pipelines.",
+          "Prevents an infrastructure cache interruption from taking down business-critical authentication or checkout pipelines.",
       },
     ],
     reliabilityAndSecurity:
-      "Implements client IP hashing with salt to protect client privacy. Incorporates an in-memory circuit breaker that automatically bypasses rate limiting (fail-open) if Redis response timeouts exceed 20ms over a 5-second interval.",
+      "Implements client IP hashing with salt for privacy. Incorporates an in-memory circuit breaker that automatically bypasses rate limiting (fail-open) if Redis response timeouts exceed thresholds.",
     results: [
       "Benchmark Test Result: Sustained 50,000+ requests/sec across containerized cluster nodes under load testing.",
-      "Achieved ~3ms P99 latency and ~1.1ms P50 latency in local containerized benchmarks.",
-      "Zero race condition overages observed during multi-threaded concurrent burst tests.",
-      "Packaged with reproducible Docker Compose and Kubernetes deployment manifests.",
+      "Achieved ~3ms P99 latency and ~1.1ms P50 latency in containerized benchmark testing.",
+      "Zero race condition overages observed during concurrent burst tests.",
+      "Packaged with reproducible Docker Compose deployment configurations.",
     ],
     lessonsLearned:
-      "When designing distributed systems with sub-5ms latency budgets, reducing network round trips through atomic server-side scripts (Lua) and binary protocols (gRPC) is overwhelmingly more effective than simply adding more CPU cores.",
+      "When building distributed systems with low latency budgets, reducing network round trips through atomic server-side scripts (Lua) and binary protocols (gRPC) is significantly more effective than merely adding compute resources.",
     technologies: [
       "Python 3.11",
       "Asyncio",
@@ -787,7 +684,6 @@ export const caseStudies = [
       "Lua Scripting",
       "Docker",
       "Locust / ghz Load Testing",
-      "Linux Systems",
     ],
   },
 ];

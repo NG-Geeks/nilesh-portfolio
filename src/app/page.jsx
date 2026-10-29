@@ -1,41 +1,41 @@
 import Hero from "../components/home/Hero";
 import ArchitectureOverview from "../components/home/ArchitectureOverview";
-import PrinciplesSection from "../components/home/PrinciplesSection";
 import CaseStudiesSection from "../components/home/CaseStudiesSection";
 import ExperienceSection from "../components/home/ExperienceSection";
+import PrinciplesSection from "../components/home/PrinciplesSection";
 import SkillsSection from "../components/home/SkillsSection";
-import CertificationsSection from "../components/home/CertificationsSection";
 import ProjectsSection from "../components/home/ProjectsSection";
+import CertificationsSection from "../components/home/CertificationsSection";
 import ContactSection from "../components/home/ContactSection";
 
 export default function HomePage() {
   return (
     <>
-      {/* 1. Hero with 3D Computer Visual */}
+      {/* 1. Hero with Identity, Value Prop, Two Primary CTAs & 3D Workstation */}
       <Hero />
 
-      {/* 2. Platform Scope & High-Impact Metrics */}
+      {/* 2. Platform Scope & High-Impact Verified Metrics */}
       <ArchitectureOverview />
 
-      {/* 3. Core Architecture & Engineering Principles */}
-      <PrinciplesSection />
-
-      {/* 4. Deep-Dive Architecture Case Studies (6 Studies) */}
+      {/* 3. Deep-Dive Architecture Case Studies */}
       <CaseStudiesSection />
 
-      {/* 5. Verified Experience (Mocha Technologies & Mirraw) */}
+      {/* 4. Professional Experience (Mocha Technologies & Mirraw) */}
       <ExperienceSection />
 
-      {/* 6. Technical Capabilities by Engineering Domain */}
+      {/* 5. Core Architecture & Engineering Principles */}
+      <PrinciplesSection />
+
+      {/* 6. Technical Stack & Capabilities by Domain */}
       <SkillsSection />
 
-      {/* 7. Verified Certifications & Accreditations */}
-      <CertificationsSection />
-
-      {/* 8. Secondary Systems & Preserved Projects */}
+      {/* 7. Systems Projects & Open Source Repositories */}
       <ProjectsSection />
 
-      {/* 9. Contact Section with 3D Earth Visual */}
+      {/* 8. Verified Accreditations & Certifications */}
+      <CertificationsSection />
+
+      {/* 9. Direct Hiring & Contact CTA Banner */}
       <ContactSection />
     </>
   );

@@ -35,3 +35,4 @@ export default function CanvasFallback({ title = "Interactive 3D Visualizer" }) 
     </div>
   );
 }
+

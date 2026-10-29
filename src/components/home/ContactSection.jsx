@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import emailjs from "@emailjs/browser";
 import { siteLinks } from "../../data/links";
@@ -8,16 +9,17 @@ import CanvasFallback from "../canvas/CanvasFallback";
 
 const EarthCanvas = dynamic(() => import("../canvas/Earth"), {
   ssr: false,
-  loading: () => <CanvasFallback title="Interactive 3D Planetary Node (Three.js)" />,
+  loading: () => (
+    <CanvasFallback title="Interactive 3D Planetary Node (Three.js)" />
+  ),
 });
 
 export default function ContactSection() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    subject: "",
     message: "",
-    honeypot: "", // Spam prevention field (hidden from real users)
+    honeypot: "",
   });
 
   const [status, setStatus] = useState({
@@ -34,34 +36,40 @@ export default function ContactSection() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. Honeypot check (Spam bot protection)
     if (form.honeypot) {
-      console.warn("Spam bot submission caught by honeypot.");
       setStatus({ submitting: false, submitted: true, error: null });
       return;
     }
 
-    // 2. Client-side input validation
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      setStatus({ submitting: false, submitted: false, error: "Please complete all required fields." });
+      setStatus({
+        submitting: false,
+        submitted: false,
+        error: "Please fill out all required fields.",
+      });
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email.trim())) {
-      setStatus({ submitting: false, submitted: false, error: "Please provide a valid email address." });
+      setStatus({
+        submitting: false,
+        submitted: false,
+        error: "Please provide a valid work email.",
+      });
       return;
     }
 
-    // 3. Prevent duplicate submissions
     if (status.submitting) return;
 
     setStatus({ submitting: true, submitted: false, error: null });
 
-    // 4. Configurable EmailJS keys via env vars with fallback
-    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_cwjtp9t";
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_z5ohjpl";
-    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "21kf0H_70ey5M6duv";
+    const serviceId =
+      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_cwjtp9t";
+    const templateId =
+      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_z5ohjpl";
+    const publicKey =
+      process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "21kf0H_70ey5M6duv";
 
     try {
       await emailjs.send(
@@ -69,189 +77,216 @@ export default function ContactSection() {
         templateId,
         {
           from_name: form.name.trim(),
-          to_name: "Nilesh",
+          to_name: "Nilesh Gupta",
           from_email: form.email.trim(),
           to_email: siteLinks.email,
-          subject: form.subject.trim() || "Portfolio Inbound Inquiry",
+          subject: `Homepage Inquiry from ${form.name.trim()}`,
           message: form.message.trim(),
         },
-        publicKey
+        publicKey,
       );
 
       setStatus({ submitting: false, submitted: true, error: null });
-      setForm({ name: "", email: "", subject: "", message: "", honeypot: "" });
+      setForm({ name: "", email: "", message: "", honeypot: "" });
     } catch (err) {
-      console.error("EmailJS submission error:", err);
-      // Even if network or provider error occurs, provide direct email fallback
+      console.error("Submission error:", err);
       setStatus({
         submitting: false,
         submitted: false,
-        error: `Submission failed. You can reach me directly at ${siteLinks.email}.`,
+        error: `Could not send message automatically. Please email me directly at ${siteLinks.email}.`,
       });
     }
   };
 
   return (
-    <section id="contact" className="py-20 lg:py-28 relative overflow-hidden">
+    <section
+      id="contact"
+      className="py-16 md:py-24 border-t border-slate-800/60 relative"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Form Column */}
-          <div className="lg:col-span-7 space-y-8">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-tealAccent/10 border border-tealAccent/30 text-tealAccent text-xs font-mono">
-                <span>Direct Inquiries</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Architectural Inquiries & Contact
-              </h2>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
-                Interested in discussing Software Architecture, Solution Architecture, Platform Engineering, or Senior Backend leadership opportunities? Let&apos;s connect.
-              </p>
+        <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 border border-teal-500/30 p-6 sm:p-10 lg:p-12 shadow-sm">
+          {/* Top Intro Bar */}
+          <div className="max-w-3xl mb-8 space-y-3">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded text-xs font-mono bg-teal-400/10 text-teal-400 border border-teal-400/20">
+              <span>Direct Hiring & Collaboration</span>
             </div>
-
-            {/* Direct Channel Pills */}
-            <div className="flex flex-wrap gap-4 text-xs font-mono">
-              <a
-                href={`mailto:${siteLinks.email}`}
-                className="px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-800 text-slate-300 hover:text-tealAccent hover:border-tealAccent/40 transition-colors flex items-center gap-2"
-              >
-                <span>✉</span>
-                <span>{siteLinks.email}</span>
-              </a>
-              <a
-                href={siteLinks.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-800 text-slate-300 hover:text-sky-400 hover:border-sky-400/40 transition-colors flex items-center gap-2"
-              >
-                <span>in</span>
-                <span>LinkedIn Message</span>
-              </a>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5 bg-navy-950/80 p-8 rounded-2xl border border-slate-800 shadow-card">
-              {/* Honeypot field (hidden) */}
-              <input
-                type="text"
-                name="honeypot"
-                value={form.honeypot}
-                onChange={handleChange}
-                style={{ display: "none" }}
-                tabIndex="-1"
-                autoComplete="off"
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label htmlFor="name" className="block text-xs font-mono text-slate-300 mb-1.5 uppercase tracking-wider">
-                    Your Name <span className="text-tealAccent">*</span>
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. Jane Doe"
-                    className="w-full px-4 py-2.5 rounded-xl bg-navy-900 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-600 focus:outline-none focus:border-tealAccent transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-xs font-mono text-slate-300 mb-1.5 uppercase tracking-wider">
-                    Work Email <span className="text-tealAccent">*</span>
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="jane@company.com"
-                    className="w-full px-4 py-2.5 rounded-xl bg-navy-900 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-600 focus:outline-none focus:border-tealAccent transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-xs font-mono text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Subject / Role Context
-                </label>
-                <input
-                  id="subject"
-                  type="text"
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
-                  placeholder="e.g. Platform Architecture / Senior Backend Role"
-                  className="w-full px-4 py-2.5 rounded-xl bg-navy-900 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-600 focus:outline-none focus:border-tealAccent transition-colors"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-xs font-mono text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Message <span className="text-tealAccent">*</span>
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={4}
-                  value={form.message}
-                  onChange={handleChange}
-                  required
-                  placeholder="Share details regarding your team, architecture requirements, or project scope..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-navy-900 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-600 focus:outline-none focus:border-tealAccent transition-colors"
-                />
-              </div>
-
-              {/* Status alerts */}
-              {status.error && (
-                <div className="p-3 rounded-lg bg-rose-950/50 border border-rose-800 text-rose-300 text-xs">
-                  {status.error}
-                </div>
-              )}
-
-              {status.submitted && (
-                <div className="p-3 rounded-lg bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-xs">
-                  ✓ Message transmitted successfully. I will review and respond promptly.
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={status.submitting}
-                className="w-full sm:w-auto px-7 py-3 rounded-xl bg-tealAccent text-navy-950 font-semibold text-sm hover:bg-tealAccent-light disabled:opacity-50 transition-all shadow-tealGlow flex items-center justify-center gap-2"
-              >
-                {status.submitting ? (
-                  <>
-                    <span className="w-3.5 h-3.5 rounded-full border-2 border-navy-950 border-t-transparent animate-spin" />
-                    <span>Transmitting Message...</span>
-                  </>
-                ) : (
-                  <span>Send Direct Inquiry →</span>
-                )}
-              </button>
-            </form>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+              Looking for a Backend Software Engineer?
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              I am actively considering opportunities focused on distributed
+              systems, multi-tenant SaaS security, subscription billing, and
+              scalable commerce platforms.
+            </p>
           </div>
 
-          {/* Right Column: 3D Earth Globe (Three.js preserved) */}
-          <div className="lg:col-span-5 h-[380px] sm:h-[460px] lg:h-[520px] w-full rounded-2xl overflow-hidden border border-slate-800/80 bg-navy-950/70 shadow-card relative group">
-            <div className="absolute top-3 left-4 z-20 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-tealAccent/80 animate-ping" />
-              <span className="text-[11px] font-mono text-slate-400 uppercase tracking-widest">
-                Global Distributed Node (WebGL)
-              </span>
+          {/* Side-by-Side: Interactive Form & 3D Planetary Visualizer */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left: Quick Direct Inquiry Form + Quick Actions */}
+            <div className="lg:col-span-6 space-y-5">
+              <div className="p-6 sm:p-7 rounded-xl bg-slate-950/70 border border-slate-800/80 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">
+                      Quick Inquiry Form
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Send a message directly to my inbox.
+                    </p>
+                  </div>
+                  <Link
+                    href="/contact"
+                    className="text-xs font-mono text-teal-400 hover:text-teal-300 transition-colors"
+                  >
+                    Full Contact Page →
+                  </Link>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <input
+                    type="text"
+                    name="honeypot"
+                    value={form.honeypot}
+                    onChange={handleChange}
+                    style={{ display: "none" }}
+                    tabIndex="-1"
+                    autoComplete="off"
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label
+                        htmlFor="hp_name"
+                        className="block text-[11px] font-mono text-slate-300 mb-1"
+                      >
+                        Your Name *
+                      </label>
+                      <input
+                        id="hp_name"
+                        type="text"
+                        name="name"
+                        value={form.name}
+                        onChange={handleChange}
+                        required
+                        placeholder="Jane Doe"
+                        className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="hp_email"
+                        className="block text-[11px] font-mono text-slate-300 mb-1"
+                      >
+                        Work Email *
+                      </label>
+                      <input
+                        id="hp_email"
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                        placeholder="jane@company.com"
+                        className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="hp_msg"
+                      className="block text-[11px] font-mono text-slate-300 mb-1"
+                    >
+                      Message / Opportunity Scope *
+                    </label>
+                    <textarea
+                      id="hp_msg"
+                      name="message"
+                      rows={3}
+                      value={form.message}
+                      onChange={handleChange}
+                      required
+                      placeholder="Tell me about your role, team, or platform challenge..."
+                      className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 transition-colors"
+                    />
+                  </div>
+
+                  {status.error && (
+                    <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800/60 text-rose-300 text-[11px]">
+                      {status.error}
+                    </div>
+                  )}
+
+                  {status.submitted && (
+                    <div className="p-2.5 rounded bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-[11px]">
+                      ✓ Message received. I will respond to your email promptly.
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={status.submitting}
+                    className="w-full py-2.5 rounded-lg bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-slate-950 font-semibold text-xs font-mono transition-all shadow-sm"
+                  >
+                    {status.submitting ? "Sending..." : "Submit Message →"}
+                  </button>
+                </form>
+              </div>
+
+              {/* Quick Channels Links */}
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                <a
+                  href={siteLinks.mailto}
+                  className="inline-flex items-center gap-1.5 text-teal-400 hover:text-teal-300 transition-colors"
+                >
+                  <span>Email Directly ({siteLinks.email})</span>
+                  <span>↗</span>
+                </a>
+
+                <div className="flex items-center gap-3 text-slate-400">
+                  <a
+                    href={siteLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    LinkedIn ↗
+                  </a>
+                  <span>•</span>
+                  <a
+                    href={siteLinks.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    GitHub ↗
+                  </a>
+                  <span>•</span>
+                  <a
+                    href={siteLinks.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    CV / Résumé ↗
+                  </a>
+                </div>
+              </div>
             </div>
 
-            <div className="w-full h-full">
+            {/* Right: Restored Interactive 3D Earth Planetary Globe */}
+            <div className="lg:col-span-6 h-[340px] sm:h-[400px] lg:h-[440px] w-full rounded-xl overflow-hidden border border-slate-800/70 bg-slate-950/60 relative shadow-inner">
+              <div className="absolute top-3 left-3 z-10 text-[11px] font-mono text-slate-300 bg-slate-900/90 px-2.5 py-1 rounded border border-slate-700/80 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+                {/* <span>Interactive 3D Planetary Node</span> */}
+              </div>
+
+              <div className="absolute bottom-3 right-3 z-10 text-[10px] font-mono text-slate-400 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800 pointer-events-none">
+                Drag to Orbit • Continuous Rotation
+              </div>
+
               <EarthCanvas />
-            </div>
-
-            <div className="absolute bottom-3 right-4 z-20 pointer-events-none text-[10px] font-mono text-slate-500">
-              Interactive 3D Planetary Canvas
             </div>
           </div>
         </div>
